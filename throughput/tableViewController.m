@@ -256,7 +256,6 @@ int pcount;
     NSLog(@">>>>>>>>>Enable");
 }*/
 
-int counter_n[5] = {0, 0, 0, 0, 0};
 //int position = 0;
 
 - (void) ValuesUpdated:(int16_t)accel_x accel_y:(int16_t)accel_y accel_z:(int16_t)accel_z gyro_x:(int16_t)gyro_x gyro_y:(int16_t)gyro_y gyro_z:(int16_t)gyro_z seqnum:(int16_t)seqnum address:(NSString*)address
@@ -308,134 +307,88 @@ int counter_n[5] = {0, 0, 0, 0, 0};
 }
 
 //int counter = 0;
+
+int counter_n[5] = {0, 0, 0, 0, 0};
+int counter_r[5] = {0, 0, 0, 0, 0};
 int16_t buffer_Acc_GYRO_send[5][300][6];
 float buffer_Acc_GYRO_write[5][300][6];
+float buffer_Acc_GYRO_retx[5][300][7];
 float buffer_time[5][300];
+float buffer_time_retx[5][300];
 uint16_t buffer_seqnum[5][300];
-int loss_flag[5][300];
-int16_t diff_accgyro[7], temp[7];
-float diff_time;
-int write_key = 0, loss_num, after_write[5] = {0, 0 , 0, 0, 0}, last_index[5] = {0, 0 , 0, 0, 0}, first_loss[5] = {0, 0 , 0, 0, 0}, retranismition_flag[5] = {0, 0 , 0, 0, 0},retrain_after_flag[5] = {0, 0 , 0, 0, 0};
+uint16_t buffer_seqnum_retx[5][300];
+int first_data[5] = {1, 1, 1, 1, 1}, loss_num, after_write[5] = {0, 0 , 0, 0, 0}, after_write_r[5] = {0, 0 , 0, 0, 0}, last_index[5] = {0, 0 , 0, 0, 0}, last_index_r[5] = {0, 0 , 0, 0, 0};
 
 - (void) HandleOutput: (int)np ss:(float)ss accx:(int16_t)accx accy:(int16_t)accy accz:(int16_t)accz GYROx:(int16_t)GYROx GYROy:(int16_t)GYROy GYROz:(int16_t)GYROz seqnum:(int16_t)seqnum address:(NSString*)address
 {
     NSString* file_address = nil;
-    int index = 0;
-    int counter = counter_n[np];
-    buffer_time[np][counter] = ss;
-    buffer_Acc_GYRO_send[np][counter][0] = accx;
-    buffer_Acc_GYRO_send[np][counter][1] = accy;
-    buffer_Acc_GYRO_send[np][counter][2] = accz;
-    buffer_Acc_GYRO_send[np][counter][3] = GYROx;
-    buffer_Acc_GYRO_send[np][counter][4] = GYROy;
-    buffer_Acc_GYRO_send[np][counter][5] = GYROz;
-    buffer_seqnum[np][counter] = seqnum;
 
-    if(after_write[np] == 0)
+    if(first_data[np] == 0)
     {
-        if(retranismition_flag[np] == 1)
-        {
-            if(retrain_after_flag[np] ==1)
-            {
-                loss_num = buffer_seqnum[np][counter] - buffer_seqnum[np][last_index[np]-1] - 1;
-                NSLog(@"ann 1:%d 2:%d\r\n", buffer_seqnum[np][counter], buffer_seqnum[np][last_index[np]-1]);
-                index = last_index[np]-1;
-                retrain_after_flag[np] = 0;
-            }
-            else
-            {
-                loss_num = buffer_seqnum[np][counter] - buffer_seqnum[np][counter-2] - 1;
-                NSLog(@"ar 1:%d 2:%d\r\n", buffer_seqnum[np][counter], buffer_seqnum[np][counter-2]);
-                index = counter-2;
-                retranismition_flag[np] = 0;
-            }
-        }
-        else
-        {
-            loss_num = buffer_seqnum[np][counter] - buffer_seqnum[np][counter-1] - 1;
-            index = counter-1;
-            NSLog(@"an 1:%d 2:%d\r\n", buffer_seqnum[np][counter], buffer_seqnum[np][counter-1]);
-        }
+        loss_num = seqnum - buffer_seqnum[np][counter_n[np]-1] - 1;
     }
-    if(after_write[np] == 1)
+    else if(first_data[np] == 1)
     {
-        if(retranismition_flag[np] == 1)
-        {
-            loss_num = buffer_seqnum[np][counter] - buffer_seqnum[np][last_index[np]-1] - 1;
-            NSLog(@"nr 1:%d 2:%d\r\n", buffer_seqnum[np][counter], buffer_seqnum[np][last_index[np]-1]);
-            index = last_index[np]-1;
-            retranismition_flag[np] = 0;
-        }
-        else
-        {
-            loss_num = buffer_seqnum[np][counter] - buffer_seqnum[np][last_index[np]] - 1;
-            NSLog(@"nn 1:%d 2:%d\r\n", buffer_seqnum[np][counter], buffer_seqnum[np][last_index[np]]);
-            index = last_index[np];
-            retrain_after_flag[np] = 1;
-        }
+        loss_num = 0;
+        first_data[np] = 0;
+    }
+    else if(after_write[np] == 1)
+    {
+        loss_num = seqnum - buffer_seqnum[np][last_index[np]] - 1;
         after_write[np] = 0;
-        if(loss_num>0)
-        {
-            first_loss[np] = 1;
-        }
-        //NSLog(@"after 1:%d 2:%d\r\n", buffer_seqnum[np][counter], buffer_seqnum[np][last_index[np]]);
+    }/*
+    else if(after_write_r[np] == 1)
+    {
+        
+    }*/
+    else
+    {
+        NSLog(@"Unknow loss number");
     }
     NSLog(@"LN:%d SQ:%d\r\n", loss_num, seqnum);
-    if (loss_num > 0 && (counter>0 || first_loss[np] ==1)) {
-        for (int i=0; i<6; i++){
-            diff_accgyro[i] = (buffer_Acc_GYRO_send[np][counter][i] -  buffer_Acc_GYRO_send[np][index][i])/(loss_num+1);
-        }
-        diff_time = buffer_time[np][counter] - buffer_time[np][index];
 
-        for (int j=0; j<(loss_num+1); j++) {
-            for (int k=0; k<6; k++){
-                buffer_Acc_GYRO_send[np][counter+j][k] = buffer_Acc_GYRO_send[np][index][k] + (j+1)*diff_accgyro[k];
-            }
-            buffer_time[np][counter+j] = buffer_time[np][index] + (j+1)*diff_time;
-            buffer_seqnum[np][counter+j] = buffer_seqnum[np][index]+(j+1);
-            
-            //[self RawValuesUpdated:buffer_Acc_GYRO_send[np][counter+j][0] accel_y:buffer_Acc_GYRO_send[np][counter+j][1] accel_z:buffer_Acc_GYRO_send[np][counter+j][2] gyro_x:buffer_Acc_GYRO_send[np][counter+j][3] gyro_y:buffer_Acc_GYRO_send[np][counter+j][4] gyro_z:buffer_Acc_GYRO_send[np][counter+j][5]];
-            
-            if(j != loss_num)
-            {
-                loss_flag[np][counter+j] = 1;
-            }
-            else
-            {
-                loss_flag[np][counter+j] = 0;
-            }
-        }
-        counter = counter + loss_num;
-        //NSLog(@"SQC: %hu", buffer_seqnum[np][counter]);
-        counter_n[np] = counter;
-        first_loss[np] = 0;
-        //NSLog(@"counter %d\n",counter);
-    }
-    if(loss_num ==0)
+    if(loss_num < 0)
     {
-        //[self RawValuesUpdated:buffer_Acc_GYRO_send[np][counter][0] accel_y:buffer_Acc_GYRO_send[np][counter][1] accel_z:buffer_Acc_GYRO_send[np][counter][2] gyro_x:buffer_Acc_GYRO_send[np][counter][3] gyro_y:buffer_Acc_GYRO_send[np][counter][4] gyro_z:buffer_Acc_GYRO_send[np][counter][5]];
-        loss_flag[np][counter] = 0;
+        int counter = counter_r[np];
+        buffer_time_retx[np][counter] = ss;
+        buffer_Acc_GYRO_retx[np][counter][0] = (float)(accx)/16/256;
+        buffer_Acc_GYRO_retx[np][counter][1] = (float)(accy)/16/256;
+        buffer_Acc_GYRO_retx[np][counter][2] = (float)(accz)/16/256;
+        buffer_Acc_GYRO_retx[np][counter][3] = (float)(GYROx)/16/256*250;
+        buffer_Acc_GYRO_retx[np][counter][4] = (float)(GYROy)/16/256*250;
+        buffer_Acc_GYRO_retx[np][counter][5] = (float)(GYROz)/16/256*250;
+        buffer_seqnum_retx[np][counter] = seqnum;
+        
+        counter_r[np]++;
     }
-    if(loss_num<0)
+    else
     {
-        //[self RawValuesUpdated:buffer_Acc_GYRO_send[np][counter][0] accel_y:buffer_Acc_GYRO_send[np][counter][1] accel_z:buffer_Acc_GYRO_send[np][counter][2] gyro_x:buffer_Acc_GYRO_send[np][counter][3] gyro_y:buffer_Acc_GYRO_send[np][counter][4] gyro_z:buffer_Acc_GYRO_send[np][counter][5]];
-        loss_flag[np][counter] = 0;
-        retranismition_flag[np] = 1;
+        int counter = counter_n[np];
+        buffer_time[np][counter] = ss;
+        buffer_Acc_GYRO_send[np][counter][0] = accx;
+        buffer_Acc_GYRO_send[np][counter][1] = accy;
+        buffer_Acc_GYRO_send[np][counter][2] = accz;
+        buffer_Acc_GYRO_send[np][counter][3] = GYROx;
+        buffer_Acc_GYRO_send[np][counter][4] = GYROy;
+        buffer_Acc_GYRO_send[np][counter][5] = GYROz;
+        buffer_seqnum[np][counter] = seqnum;
+        
+        counter_n[np]++;
     }
-    counter_n[np]++;
+    
     
     if (counter_n[np] >200) {
         //寫入檔案
         for (int i=0;i<counter_n[np];i++) {
             // get path to Documents/address.txt
-            NSLog(@"before : %hi %hi %hi %hi %hi %hi",buffer_Acc_GYRO_send[np][i][0],buffer_Acc_GYRO_send[np][i][1],buffer_Acc_GYRO_send[np][i][2],buffer_Acc_GYRO_send[np][i][3],buffer_Acc_GYRO_send[np][i][4],buffer_Acc_GYRO_send[np][i][5]);
+            //NSLog(@"before : %hi %hi %hi %hi %hi %hi",buffer_Acc_GYRO_send[np][i][0],buffer_Acc_GYRO_send[np][i][1],buffer_Acc_GYRO_send[np][i][2],buffer_Acc_GYRO_send[np][i][3],buffer_Acc_GYRO_send[np][i][4],buffer_Acc_GYRO_send[np][i][5]);
             buffer_Acc_GYRO_write[np][i][0] = (float)(buffer_Acc_GYRO_send[np][i][0]) / 16 / 256;
             buffer_Acc_GYRO_write[np][i][1] = (float)(buffer_Acc_GYRO_send[np][i][1]) / 16 / 256;
             buffer_Acc_GYRO_write[np][i][2] = (float)(buffer_Acc_GYRO_send[np][i][2]) / 16 / 256;
             buffer_Acc_GYRO_write[np][i][3] = (float)(buffer_Acc_GYRO_send[np][i][3])/16/256*250;
             buffer_Acc_GYRO_write[np][i][4] = (float)(buffer_Acc_GYRO_send[np][i][4])/16/256*250;
             buffer_Acc_GYRO_write[np][i][5] = (float)(buffer_Acc_GYRO_send[np][i][5])/16/256*250;
-            NSLog(@"before : %f %f %f %f %f %f",buffer_Acc_GYRO_write[np][i][0],buffer_Acc_GYRO_write[np][i][1],buffer_Acc_GYRO_write[np][i][2],buffer_Acc_GYRO_write[np][i][3],buffer_Acc_GYRO_write[np][i][4],buffer_Acc_GYRO_write[np][i][5]);
+            //NSLog(@"before : %f %f %f %f %f %f",buffer_Acc_GYRO_write[np][i][0],buffer_Acc_GYRO_write[np][i][1],buffer_Acc_GYRO_write[np][i][2],buffer_Acc_GYRO_write[np][i][3],buffer_Acc_GYRO_write[np][i][4],buffer_Acc_GYRO_write[np][i][5]);
             NSArray *pathsa = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
             NSString *documentsDirectory = [pathsa objectAtIndex:0];
             //NSLog(@"save to %@\n", address);
@@ -452,7 +405,7 @@ int write_key = 0, loss_num, after_write[5] = {0, 0 , 0, 0, 0}, last_index[5] = 
             [handle truncateFileAtOffset:[handle seekToEndOfFile]];
             
             
-            NSString *outS = [NSString stringWithFormat:@"%f,%f,%f,%f,%f,%f,%f,%hu,%d\r\n", buffer_time[np][i], buffer_Acc_GYRO_write[np][i][0],buffer_Acc_GYRO_write[np][i][1], buffer_Acc_GYRO_write[np][i][2], buffer_Acc_GYRO_write[np][i][3], buffer_Acc_GYRO_write[np][i][4],buffer_Acc_GYRO_write[np][i][5], buffer_seqnum[np][i],loss_flag[np][i]];
+            NSString *outS = [NSString stringWithFormat:@"%f,%f,%f,%f,%f,%f,%f,%hu\r\n", buffer_time[np][i], buffer_Acc_GYRO_write[np][i][0],buffer_Acc_GYRO_write[np][i][1], buffer_Acc_GYRO_write[np][i][2], buffer_Acc_GYRO_write[np][i][3], buffer_Acc_GYRO_write[np][i][4],buffer_Acc_GYRO_write[np][i][5], buffer_seqnum[np][i]];
             //NSLog(@"out%@",outS);
             [handle writeData:[outS dataUsingEncoding:NSUTF8StringEncoding]];
         }
@@ -460,27 +413,35 @@ int write_key = 0, loss_num, after_write[5] = {0, 0 , 0, 0, 0}, last_index[5] = 
         after_write[np] = 1;
         counter_n[np] = 0;
     }
+    if (counter_r[np] >200) {
+        //寫入檔案
+        for (int i=0;i<counter_r[np];i++) {
+
+            NSArray *pathsa = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+            NSString *documentsDirectory = [pathsa objectAtIndex:0];
+            //NSLog(@"save to %@\n", address);
+            file_address = [NSString stringWithFormat:@"%@_retx.csv", address];
+            NSString *path = [documentsDirectory stringByAppendingPathComponent:file_address];
+            
+            // create if needed
+            if (![[NSFileManager defaultManager] fileExistsAtPath:path]){
+                [[NSData data] writeToFile:path atomically:YES];
+            }
+            
+            // append
+            NSFileHandle *handle = [NSFileHandle fileHandleForWritingAtPath:path];
+            [handle truncateFileAtOffset:[handle seekToEndOfFile]];
+            
+            
+            NSString *outS = [NSString stringWithFormat:@"%f,%f,%f,%f,%f,%f,%f,%hu\r\n", buffer_time_retx[np][i], buffer_Acc_GYRO_retx[np][i][0],buffer_Acc_GYRO_retx[np][i][1], buffer_Acc_GYRO_retx[np][i][2], buffer_Acc_GYRO_retx[np][i][3], buffer_Acc_GYRO_retx[np][i][4],buffer_Acc_GYRO_retx[np][i][5], buffer_seqnum_retx[np][i]];
+            //NSLog(@"out%@",outS);
+            [handle writeData:[outS dataUsingEncoding:NSUTF8StringEncoding]];
+        }
+        //last_index_r[np] = counter_r[np]-1;
+        //after_write_r[np] = 1;
+        counter_r[np] = 0;
+    }
 }
-/*
--(void) RawValuesUpdated:(uint16_t)accel_x accel_y:(uint16_t)accel_y accel_z:(uint16_t)accel_z gyro_x:(uint16_t)gyro_x gyro_y:(uint16_t)gyro_y gyro_z:(uint16_t)gyro_z
-{
-    //NSLog(@"GYRO: %d  %d  %d  %d %d  %d\r\n", accel_x, accel_y, accel_z, gyro_x ,gyro_y, gyro_z);
-    char writedata[12];
-    writedata[0] = (uint8_t)(accel_x/256);
-    writedata[1] = (uint8_t)(accel_x&255);
-    writedata[2] = (uint8_t)(accel_y/256);
-    writedata[3] = (uint8_t)(accel_y&255);
-    writedata[4] = (uint8_t)(accel_z/256);
-    writedata[5] = (uint8_t)(accel_z&255);
-    writedata[6] = (uint8_t)(gyro_x/256);
-    writedata[7] = (uint8_t)(gyro_x&255);
-    writedata[8] = (uint8_t)(gyro_y/256);
-    writedata[9] = (uint8_t)(gyro_y&255);
-    writedata[10] = (uint8_t)(gyro_z/256);
-    writedata[11] = (uint8_t)(gyro_z&255);
-    //NSLog(@"GYROb: %hu,%hu,%hu,%hu,%hu,%hu,%hu,%hu,%hu,hu,%hu,%hu\r\n", writedata[0], writedata[1], writedata[2], writedata[3] ,writedata[4], writedata[5], writedata[6], writedata[7],writedata[8], writedata[9], writedata[10], writedata[11]);
-    [socket writeToServer:writedata[0] accel_x_low:writedata[1] accel_y_high:writedata[2] accel_y_low:writedata[3] accel_z_high:writedata[4] accel_z_low:writedata[5] gyro_x_high:writedata[6] gyro_x_low:writedata[7] gyro_y_high:writedata[8] gyro_y_low:writedata[9] gyro_z_high:writedata[10] gyro_z_low:writedata[11]];
-}
-*/
+
 
 @end
