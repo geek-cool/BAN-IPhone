@@ -36,6 +36,16 @@ int pcount;
     [socket initNetworkCommunication];
     message = [[NSMutableArray alloc] init];
     
+    n_92 = [[NSMutableArray alloc] init];
+    n_93 = [[NSMutableArray alloc] init];
+    n_94 = [[NSMutableArray alloc] init];
+    n_95 = [[NSMutableArray alloc] init];
+    
+    normal_data = [[NSMutableDictionary alloc] initWithObjectsAndKeys:@"1", [[NSMutableArray alloc]init], @"2", [[NSMutableArray alloc]init], @"3", [[NSMutableArray alloc]init], @"4", [[NSMutableArray alloc]init], nil];
+    
+    //normal_data = [[NSDictionary alloc] initWithObjectsAndKeys:@"1", n_92/*[[NSMutableArray alloc]initWithArray: n_92]*/, @"2", [[NSMutableArray alloc]initWithArray:n_93], @"3", [[NSMutableArray alloc]initWithArray:n_94], @"4", [[NSMutableArray alloc]initWithArray:n_95], nil];
+    retx_data = [[NSDictionary alloc] initWithObjectsAndKeys:@"1", [[NSMutableArray alloc]initWithArray: r_92], @"2", [[NSMutableArray alloc]initWithArray:r_93], @"3", [[NSMutableArray alloc]initWithArray:r_94], @"4", [[NSMutableArray alloc]initWithArray:r_95], nil];
+    complete_data = [[NSDictionary alloc] initWithObjectsAndKeys:@"1", [[NSMutableArray alloc]initWithArray: c_92], @"2", [[NSMutableArray alloc]initWithArray:c_93], @"3", [[NSMutableArray alloc]initWithArray:c_94], @"4", [[NSMutableArray alloc]initWithArray:c_95], nil];
     
     t = [[TIBLECBKeyfob alloc] init];   // Init TIBLECBKeyfob class.
     [t controlSetup:1];                 // Do initial setup of TIBLECBKeyfob class.
@@ -219,6 +229,9 @@ int pcount;
         [t disableAccelerometer:p];
         [arryConnect removeObjectAtIndex:indexPath.row];
         [self.tableView reloadData];
+        
+        //[self reorder];
+        
         printf("cancel Peripheral Connection!\r\n");
     }
     else{
@@ -306,6 +319,86 @@ int pcount;
     //position = 0;
 }
 
+int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
+- (void) HandleOutput: (int)np ss:(float)ss accx:(int16_t)accx accy:(int16_t)accy accz:(int16_t)accz GYROx:(int16_t)GYROx GYROy:(int16_t)GYROy GYROz:(int16_t)GYROz seqnum:(int16_t)seqnum address:(NSString*)address
+{
+    int loss_num;
+    NSString *dic_key;
+    NSNumber *time = [NSNumber numberWithFloat:ss];
+    NSNumber *ax = [NSNumber numberWithFloat:(float)(accx)/16/256];
+    NSNumber *ay = [NSNumber numberWithFloat:(float)(accy)/16/256];
+    NSNumber *az = [NSNumber numberWithFloat:(float)(accz)/16/256];
+    NSNumber *gx = [NSNumber numberWithFloat:(float)(GYROx)/16/256*250];
+    NSNumber *gy = [NSNumber numberWithFloat:(float)(GYROy)/16/256*250];
+    NSNumber *gz = [NSNumber numberWithFloat:(float)(GYROz)/16/256*250];
+    NSNumber *seq = [NSNumber numberWithInt: seqnum];
+
+    NSArray *tem = [[NSArray alloc]initWithObjects:time, ax, ay, az, gx, gy, gz, seq, nil];
+
+    switch (np)
+    {
+        case 1:
+            dic_key = [[NSString alloc] initWithString:@"1"];
+            break;
+        case 2:
+            dic_key = [[NSString alloc] initWithString:@"2"];
+            break;
+        case 3:
+            dic_key = [[NSString alloc] initWithString:@"3"];
+            break;
+        case 4:
+            dic_key = [[NSString alloc] initWithString:@"4"];
+            break;
+            
+        default:
+            break;
+    }
+    
+    NSLog(@"hello: %@",tem);
+    
+    if(first_data[np] == 0)
+    {
+        loss_num = seqnum - last_index[np] - 1;
+        last_index[np] = seqnum;
+    }
+    else
+    {
+        NSMutableArray *tem_dic = [[NSMutableArray alloc] init];
+        [tem_dic addObject:tem];NSLog(@"first%@", tem_dic);
+        [normal_data setValue:tem_dic forKey:dic_key];
+        //[[normal_data valueForKey:dic_key] addObject:tem];
+        last_index[np] = seqnum;
+        first_data[np] = 0;
+        return;
+    }
+    
+    if(loss_num < 0)
+    {NSLog(@"loss");
+        [[retx_data valueForKey:dic_key] addObject:tem];
+        NSLog(@"%@",retx_data);
+        //[self reorder:seqnum];
+    }
+    else
+    {   NSMutableArray *tem_dic = [normal_data valueForKey:dic_key];
+        //NSMutableArray *tem_dic = [[NSMutableArray alloc] init];
+        NSLog(@"no loss %@", tem_dic);
+        [tem_dic addObject:tem];
+        //for(NSObject * object in test)
+        NSLog(@"yoyo%@", tem_dic);
+        [normal_data setValue:tem_dic forKey:dic_key];
+        //NSLog(@"array num:", tem_dic.count);
+    }
+}
+
+- (void) reorder
+{
+    for(int i=0; i<5; i++)
+    {
+        //[[complete_data[i] alloc] initWithObjects:normal_data[i], retx_data[i], nil];
+    }
+    
+}
+
 //int counter = 0;
 
 int counter_n[5] = {0, 0, 0, 0, 0};
@@ -317,9 +410,9 @@ float buffer_time[5][300];
 float buffer_time_retx[5][300];
 uint16_t buffer_seqnum[5][300];
 uint16_t buffer_seqnum_retx[5][300];
-int first_data[5] = {1, 1, 1, 1, 1}, loss_num, after_write[5] = {0, 0 , 0, 0, 0}, after_write_r[5] = {0, 0 , 0, 0, 0}, last_index[5] = {0, 0 , 0, 0, 0}, last_index_r[5] = {0, 0 , 0, 0, 0};
+int loss_num, after_write[5] = {0, 0 , 0, 0, 0}, after_write_r[5] = {0, 0 , 0, 0, 0},last_index_r[5] = {0, 0 , 0, 0, 0};
 
-- (void) HandleOutput: (int)np ss:(float)ss accx:(int16_t)accx accy:(int16_t)accy accz:(int16_t)accz GYROx:(int16_t)GYROx GYROy:(int16_t)GYROy GYROz:(int16_t)GYROz seqnum:(int16_t)seqnum address:(NSString*)address
+- (void) HandleOutput1: (int)np ss:(float)ss accx:(int16_t)accx accy:(int16_t)accy accz:(int16_t)accz GYROx:(int16_t)GYROx GYROy:(int16_t)GYROy GYROz:(int16_t)GYROz seqnum:(int16_t)seqnum address:(NSString*)address
 {
     NSString* file_address = nil;
 
