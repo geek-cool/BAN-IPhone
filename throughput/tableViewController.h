@@ -22,20 +22,8 @@
     NSString *infile;
     NSString *peripherals;
     NSMutableDictionary *normal_data;
-    NSMutableArray *n_92;
-    NSMutableArray *n_93;
-    NSMutableArray *n_94;
-    NSMutableArray *n_95;
-    NSDictionary *retx_data;
-    NSMutableArray *r_92;
-    NSMutableArray *r_93;
-    NSMutableArray *r_94;
-    NSMutableArray *r_95;
-    NSDictionary *complete_data;
-    NSMutableArray *c_92;
-    NSMutableArray *c_93;
-    NSMutableArray *c_94;
-    NSMutableArray *c_95;
+    NSMutableDictionary *retx_data;
+    NSMutableDictionary *complete_data;
     
     NSTimer *myTimer;
     

@@ -36,16 +36,9 @@ int pcount;
     [socket initNetworkCommunication];
     message = [[NSMutableArray alloc] init];
     
-    n_92 = [[NSMutableArray alloc] init];
-    n_93 = [[NSMutableArray alloc] init];
-    n_94 = [[NSMutableArray alloc] init];
-    n_95 = [[NSMutableArray alloc] init];
-    
     normal_data = [[NSMutableDictionary alloc] initWithObjectsAndKeys:@"1", [[NSMutableArray alloc]init], @"2", [[NSMutableArray alloc]init], @"3", [[NSMutableArray alloc]init], @"4", [[NSMutableArray alloc]init], nil];
-    
-    //normal_data = [[NSDictionary alloc] initWithObjectsAndKeys:@"1", n_92/*[[NSMutableArray alloc]initWithArray: n_92]*/, @"2", [[NSMutableArray alloc]initWithArray:n_93], @"3", [[NSMutableArray alloc]initWithArray:n_94], @"4", [[NSMutableArray alloc]initWithArray:n_95], nil];
-    retx_data = [[NSDictionary alloc] initWithObjectsAndKeys:@"1", [[NSMutableArray alloc]initWithArray: r_92], @"2", [[NSMutableArray alloc]initWithArray:r_93], @"3", [[NSMutableArray alloc]initWithArray:r_94], @"4", [[NSMutableArray alloc]initWithArray:r_95], nil];
-    complete_data = [[NSDictionary alloc] initWithObjectsAndKeys:@"1", [[NSMutableArray alloc]initWithArray: c_92], @"2", [[NSMutableArray alloc]initWithArray:c_93], @"3", [[NSMutableArray alloc]initWithArray:c_94], @"4", [[NSMutableArray alloc]initWithArray:c_95], nil];
+    retx_data = [[NSMutableDictionary alloc] initWithObjectsAndKeys:@"1", [[NSMutableArray alloc]init], @"2", [[NSMutableArray alloc]init], @"3", [[NSMutableArray alloc]init], @"4", [[NSMutableArray alloc]init], nil];
+    complete_data = [[NSMutableDictionary alloc] initWithObjectsAndKeys:@"1", [[NSMutableArray alloc]init], @"2", [[NSArray alloc]init], @"3", [[NSMutableArray alloc]init], @"4", [[NSMutableArray alloc]init], nil];
     
     t = [[TIBLECBKeyfob alloc] init];   // Init TIBLECBKeyfob class.
     [t controlSetup:1];                 // Do initial setup of TIBLECBKeyfob class.
@@ -230,7 +223,8 @@ int pcount;
         [arryConnect removeObjectAtIndex:indexPath.row];
         [self.tableView reloadData];
         
-        //[self reorder];
+        [self reorder_handler];
+        //[self save];
         
         printf("cancel Peripheral Connection!\r\n");
     }
@@ -274,11 +268,11 @@ int pcount;
 - (void) ValuesUpdated:(int16_t)accel_x accel_y:(int16_t)accel_y accel_z:(int16_t)accel_z gyro_x:(int16_t)gyro_x gyro_y:(int16_t)gyro_y gyro_z:(int16_t)gyro_z seqnum:(int16_t)seqnum address:(NSString*)address
 {
     
-    if (counter_n[0]>2000) {
+   /* if (counter_n[0]>2000) {
         [self tableViewUpdated];
         counter_n[0]=0;
     }
-    counter_n[0]++;
+    counter_n[0]++;*/
     accX = (float)(accel_x) / 16 / 256;
     accY = (float)(accel_y) / 16 / 256;
     accZ = (float)(accel_z) / 16 / 256;
@@ -323,218 +317,276 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
 - (void) HandleOutput: (int)np ss:(float)ss accx:(int16_t)accx accy:(int16_t)accy accz:(int16_t)accz GYROx:(int16_t)GYROx GYROy:(int16_t)GYROy GYROz:(int16_t)GYROz seqnum:(int16_t)seqnum address:(NSString*)address
 {
     int loss_num;
-    NSString *dic_key;
+    NSString *dic_key = [[NSString alloc] init];
     NSNumber *time = [NSNumber numberWithFloat:ss];
-    NSNumber *ax = [NSNumber numberWithFloat:(float)(accx)/16/256];
-    NSNumber *ay = [NSNumber numberWithFloat:(float)(accy)/16/256];
-    NSNumber *az = [NSNumber numberWithFloat:(float)(accz)/16/256];
-    NSNumber *gx = [NSNumber numberWithFloat:(float)(GYROx)/16/256*250];
-    NSNumber *gy = [NSNumber numberWithFloat:(float)(GYROy)/16/256*250];
-    NSNumber *gz = [NSNumber numberWithFloat:(float)(GYROz)/16/256*250];
+    NSNumber *ax = [NSNumber numberWithInt:accx];
+    NSNumber *ay = [NSNumber numberWithInt:accy];
+    NSNumber *az = [NSNumber numberWithInt:accz];
+    NSNumber *gx = [NSNumber numberWithInt:GYROx];
+    NSNumber *gy = [NSNumber numberWithInt:GYROy];
+    NSNumber *gz = [NSNumber numberWithInt:GYROz];
     NSNumber *seq = [NSNumber numberWithInt: seqnum];
 
     NSArray *tem = [[NSArray alloc]initWithObjects:time, ax, ay, az, gx, gy, gz, seq, nil];
 
-    switch (np)
-    {
-        case 1:
-            dic_key = [[NSString alloc] initWithString:@"1"];
-            break;
-        case 2:
-            dic_key = [[NSString alloc] initWithString:@"2"];
-            break;
-        case 3:
-            dic_key = [[NSString alloc] initWithString:@"3"];
-            break;
-        case 4:
-            dic_key = [[NSString alloc] initWithString:@"4"];
-            break;
-            
-        default:
-            break;
-    }
-    
-    NSLog(@"hello: %@",tem);
+    dic_key = [self dic_key_decide: np];
     
     if(first_data[np] == 0)
     {
+        NSLog(@"first");
         loss_num = seqnum - last_index[np] - 1;
         last_index[np] = seqnum;
     }
     else
     {
+        //loss_num = seqnum - last_index[np] - 1;
+        //NSLog(@"loss: %d", loss_num);
         NSMutableArray *tem_dic = [[NSMutableArray alloc] init];
-        [tem_dic addObject:tem];NSLog(@"first%@", tem_dic);
+        [tem_dic addObject:tem];
         [normal_data setValue:tem_dic forKey:dic_key];
-        //[[normal_data valueForKey:dic_key] addObject:tem];
         last_index[np] = seqnum;
         first_data[np] = 0;
         return;
     }
     
     if(loss_num < 0)
-    {NSLog(@"loss");
+    {
         [[retx_data valueForKey:dic_key] addObject:tem];
-        NSLog(@"%@",retx_data);
+        NSLog(@"loss num: %d, %@",loss_num, [retx_data valueForKey:dic_key]);
         //[self reorder:seqnum];
     }
     else
     {   NSMutableArray *tem_dic = [normal_data valueForKey:dic_key];
-        //NSMutableArray *tem_dic = [[NSMutableArray alloc] init];
-        NSLog(@"no loss %@", tem_dic);
         [tem_dic addObject:tem];
-        //for(NSObject * object in test)
-        NSLog(@"yoyo%@", tem_dic);
         [normal_data setValue:tem_dic forKey:dic_key];
-        //NSLog(@"array num:", tem_dic.count);
     }
 }
 
-- (void) reorder
+- (NSString *) dic_key_decide:(int)sen_num
 {
-    for(int i=0; i<5; i++)
+    NSString *key;
+    switch (sen_num)
     {
-        //[[complete_data[i] alloc] initWithObjects:normal_data[i], retx_data[i], nil];
+        case 1:
+            key = [[NSString alloc] initWithString:@"1"];
+            break;
+        case 2:
+            key = [[NSString alloc] initWithString:@"2"];
+            break;
+        case 3:
+            key = [[NSString alloc] initWithString:@"3"];
+            break;
+        case 4:
+            key = [[NSString alloc] initWithString:@"4"];
+            break;
+            
+        default:
+            key = [[NSString alloc] initWithString:@"Error"];
+            break;
+    }
+    return key;
+}
+
+- (void) reorder_handler
+{NSLog(@"reorder");
+    NSString *key = [[NSString alloc] init];
+    NSMutableArray *tem_nor = [[NSMutableArray alloc] init];
+    NSMutableArray *tem_re = [[NSMutableArray alloc] init];
+    NSMutableArray *tem_com = [[NSMutableArray alloc] init];
+    //NSSortDescriptor *sortdescriptor;
+    //NSArray *sortdescriptors = [[NSArray alloc] init];
+    //NSArray *tem_sort = [[NSArray alloc] init];
+    
+    for(int i=1; i<5; i++)
+    {NSLog(@"for");
+        
+        int re_key = 0, sort_key = 0;
+        key = [self dic_key_decide:i];
+        NSLog(@"after switch: %@", key);
+        
+        tem_nor = [normal_data valueForKey:key];
+        tem_re = [retx_data valueForKey:key];
+        if(tem_nor!= NULL)
+        {NSLog(@"nor");
+            [tem_com addObject:tem_nor];
+            NSString *add = [NSString stringWithFormat:@"normal_data_%@",key];
+            [self save:normal_data address:add];//NSLog(@"nor: %@",normal_data);
+            add = nil;
+        }
+        else
+        {NSLog(@"no_nor");
+            key = NULL;
+            continue;
+        }
+        if(tem_re!=NULL)
+        {NSLog(@"re");
+            [tem_com addObject:tem_re];
+            NSString *add = [NSString stringWithFormat:@"retx_data_%@",key];
+            [self save:retx_data address:add];
+            add = nil;
+            re_key = 1;
+        }
+        //NSLog(@"combine:%@", [[tem_com[0] firstObject] objectForKey:@"seq"]);
+        //sortdescriptor = [[NSSortDescriptor alloc] initWithKey:[[[tem_com valueForKey:key] firstObject] valueForKey:@"seq"] ascending:NO];
+        //sortdescriptors = [NSArray arrayWithObject:sortdescriptor];
+        //NSLog(@"sortdescriptors: %@",sortdescriptor);
+        //tem_sort = [tem_com sortedArrayUsingDescriptors:sortdescriptors];NSLog(@"temsort: %@ key:%@",tem_sort, key);
+        
+        //[complete_data setValue:tem_sort[0] forKey:key];
+        if(re_key == 1)
+        {
+            [self reorder:tem_nor retx:tem_re index:tem_nor.count key:key];
+            [self recatch:[complete_data valueForKey:key] key:key];
+            NSLog(@"com:%@",complete_data);
+            NSString *add = [NSString stringWithFormat:@"combine_data_%@",key];
+            [self save:complete_data address:add];
+            NSLog(@"redd");
+            sort_key = 1;
+        }
+        
+        if(sort_key == 0)
+        {
+            [complete_data setObject:tem_nor forKey:key];
+            [self recatch:[complete_data valueForKey:key] key:key];
+            NSLog(@"com:%@",complete_data);
+            NSString *add = [NSString stringWithFormat:@"combine_data_%@",key];
+            [self save:complete_data address:add];
+        }
+    }
+}
+
+- (void) recatch:(NSMutableArray*)complete_array key:(NSString*)key
+{
+    NSMutableArray *tem = [[NSMutableArray alloc] init];
+    tem = complete_array;NSLog(@"recatch tem.count:%lu",(unsigned long)tem.count);
+    for(int i=1; i<tem.count; i++)
+    {
+        NSArray *ahead, *tail;
+        int ahead_int, tail_int, difference;
+        ahead = [tem objectAtIndex:i-1];
+        tail = [tem objectAtIndex:i];
+        ahead_int = [ahead[7] intValue];
+        tail_int = [tail[7] intValue];
+        difference = tail_int - ahead_int;
+        NSLog(@"index: %d, difference: %d",i, difference);
+        if ( difference > 1 )
+        {
+            NSRange range = NSMakeRange(i, difference-1);//NSLog(@"range:%@",range);
+            NSMutableIndexSet *indexes = [NSMutableIndexSet indexSetWithIndexesInRange:range];
+            [tem insertObjects:[self interpol:ahead tail_array:tail diff:difference index:i] atIndexes:indexes];
+            //i = i + difference - 1;
+        }
     }
     
+    [complete_data setValue:tem forKey:key];
 }
 
-//int counter = 0;
-
-int counter_n[5] = {0, 0, 0, 0, 0};
-int counter_r[5] = {0, 0, 0, 0, 0};
-int16_t buffer_Acc_GYRO_send[5][300][6];
-float buffer_Acc_GYRO_write[5][300][6];
-float buffer_Acc_GYRO_retx[5][300][7];
-float buffer_time[5][300];
-float buffer_time_retx[5][300];
-uint16_t buffer_seqnum[5][300];
-uint16_t buffer_seqnum_retx[5][300];
-int loss_num, after_write[5] = {0, 0 , 0, 0, 0}, after_write_r[5] = {0, 0 , 0, 0, 0},last_index_r[5] = {0, 0 , 0, 0, 0};
-
-- (void) HandleOutput1: (int)np ss:(float)ss accx:(int16_t)accx accy:(int16_t)accy accz:(int16_t)accz GYROx:(int16_t)GYROx GYROy:(int16_t)GYROy GYROz:(int16_t)GYROz seqnum:(int16_t)seqnum address:(NSString*)address
+- (NSArray*) interpol:(NSArray*)ahead_array tail_array:(NSArray*)tail_array diff:(int) difference index:(int)index
 {
+    NSMutableArray *tem = [[NSMutableArray alloc] initWithCapacity:difference-1];
+    NSArray *ans = [[NSArray alloc] init];
+    float ahead_time = [ahead_array[0] floatValue];
+    int ahead_ax = [ahead_array[1] intValue];
+    int ahead_ay = [ahead_array[2] intValue];
+    int ahead_az = [ahead_array[3] intValue];
+    int ahead_gx = [ahead_array[4] intValue];
+    int ahead_gy = [ahead_array[5] intValue];
+    int ahead_gz = [ahead_array[6] intValue];
+    int ahead_seq = [ahead_array[7] intValue];
+    float tail_time = [tail_array[0] floatValue];
+    int tail_ax = [tail_array[1] intValue];
+    int tail_ay = [tail_array[2] intValue];
+    int tail_az = [tail_array[3] intValue];
+    int tail_gx = [tail_array[4] intValue];
+    int tail_gy = [tail_array[5] intValue];
+    int tail_gz = [tail_array[6] intValue];
+    int tail_seq = [tail_array[7] intValue];
+    float diff_time = (tail_time - ahead_time)/(difference-1);
+    int diff_ax = (tail_ax - ahead_ax)/difference;
+    int diff_ay = (tail_ay - ahead_ay)/difference;
+    int diff_az = (tail_az - ahead_az)/difference;
+    int diff_gx = (tail_gx - ahead_gx)/difference;
+    int diff_gy = (tail_gy - ahead_gy)/difference;
+    int diff_gz = (tail_gz - ahead_gz)/difference;
+    int diff_seq = (tail_seq - ahead_seq)/difference;
+    
+    for(int i=1; i<difference; i++)
+    {
+        NSNumber *time = [NSNumber numberWithFloat:ahead_time+i*diff_time];
+        NSNumber *ax = [NSNumber numberWithInt:ahead_ax+i*diff_ax];
+        NSNumber *ay = [NSNumber numberWithInt:ahead_ay+i*diff_ay];
+        NSNumber *az = [NSNumber numberWithInt:ahead_az+i*diff_az];
+        NSNumber *gx = [NSNumber numberWithInt:ahead_gx+i*diff_gx];
+        NSNumber *gy = [NSNumber numberWithInt:ahead_gy+i*diff_gy];
+        NSNumber *gz = [NSNumber numberWithInt:ahead_gz+i*diff_gz];
+        NSNumber *seq = [NSNumber numberWithInt:ahead_seq+i*diff_seq];
+        NSArray *tem_for_tem = [[NSArray alloc] initWithObjects:time,ax,ay,az,gx,gy,gz,seq, nil];
+        [tem addObject:tem_for_tem];
+    }
+    
+    ans = tem;
+    NSLog(@"INterpol: %@",ans);
+    return ans;
+}
+
+- (void) reorder:(NSMutableArray*)normal_array retx:(NSMutableArray*)retx_array index:(unsigned long)index key:(NSString*)key
+{
+    NSMutableArray *tem_normal;
+    tem_normal = normal_array;
+    for(int i=0; i<retx_array.count; i++)
+    {
+        //tem_normal = [retx_array objectAtIndex:i];
+        for(int j=0; j<normal_array.count; j++)
+        {
+            //tem_retx = [retx_array objectAtIndex:j];
+            if([retx_array objectAtIndex:i] < [normal_array objectAtIndex:j])
+            {
+                [tem_normal insertObject:[retx_array objectAtIndex:i] atIndex:j];
+            }
+        }
+    }
+    [complete_data setValue:tem_normal forKey:key];
+}
+
+- (void) save:(NSMutableDictionary*)dic address:(NSString*)address
+{NSLog(@"save");
+    NSString *key = [[NSString alloc] init];
+    NSArray *tem = [[NSArray alloc] init];
     NSString* file_address = nil;
 
-    if(first_data[np] == 0)
-    {
-        loss_num = seqnum - buffer_seqnum[np][counter_n[np]-1] - 1;
-    }
-    else if(first_data[np] == 1)
-    {
-        loss_num = 0;
-        first_data[np] = 0;
-    }
-    else if(after_write[np] == 1)
-    {
-        loss_num = seqnum - buffer_seqnum[np][last_index[np]] - 1;
-        after_write[np] = 0;
-    }/*
-    else if(after_write_r[np] == 1)
-    {
-        
-    }*/
-    else
-    {
-        NSLog(@"Unknow loss number");
-    }
-    NSLog(@"LN:%d SQ:%d\r\n", loss_num, seqnum);
-
-    if(loss_num < 0)
-    {
-        int counter = counter_r[np];
-        buffer_time_retx[np][counter] = ss;
-        buffer_Acc_GYRO_retx[np][counter][0] = (float)(accx)/16/256;
-        buffer_Acc_GYRO_retx[np][counter][1] = (float)(accy)/16/256;
-        buffer_Acc_GYRO_retx[np][counter][2] = (float)(accz)/16/256;
-        buffer_Acc_GYRO_retx[np][counter][3] = (float)(GYROx)/16/256*250;
-        buffer_Acc_GYRO_retx[np][counter][4] = (float)(GYROy)/16/256*250;
-        buffer_Acc_GYRO_retx[np][counter][5] = (float)(GYROz)/16/256*250;
-        buffer_seqnum_retx[np][counter] = seqnum;
-        
-        counter_r[np]++;
-    }
-    else
-    {
-        int counter = counter_n[np];
-        buffer_time[np][counter] = ss;
-        buffer_Acc_GYRO_send[np][counter][0] = accx;
-        buffer_Acc_GYRO_send[np][counter][1] = accy;
-        buffer_Acc_GYRO_send[np][counter][2] = accz;
-        buffer_Acc_GYRO_send[np][counter][3] = GYROx;
-        buffer_Acc_GYRO_send[np][counter][4] = GYROy;
-        buffer_Acc_GYRO_send[np][counter][5] = GYROz;
-        buffer_seqnum[np][counter] = seqnum;
-        
-        counter_n[np]++;
-    }
-    
-    
-    if (counter_n[np] >200) {
-        //寫入檔案
-        for (int i=0;i<counter_n[np];i++) {
-            // get path to Documents/address.txt
-            //NSLog(@"before : %hi %hi %hi %hi %hi %hi",buffer_Acc_GYRO_send[np][i][0],buffer_Acc_GYRO_send[np][i][1],buffer_Acc_GYRO_send[np][i][2],buffer_Acc_GYRO_send[np][i][3],buffer_Acc_GYRO_send[np][i][4],buffer_Acc_GYRO_send[np][i][5]);
-            buffer_Acc_GYRO_write[np][i][0] = (float)(buffer_Acc_GYRO_send[np][i][0]) / 16 / 256;
-            buffer_Acc_GYRO_write[np][i][1] = (float)(buffer_Acc_GYRO_send[np][i][1]) / 16 / 256;
-            buffer_Acc_GYRO_write[np][i][2] = (float)(buffer_Acc_GYRO_send[np][i][2]) / 16 / 256;
-            buffer_Acc_GYRO_write[np][i][3] = (float)(buffer_Acc_GYRO_send[np][i][3])/16/256*250;
-            buffer_Acc_GYRO_write[np][i][4] = (float)(buffer_Acc_GYRO_send[np][i][4])/16/256*250;
-            buffer_Acc_GYRO_write[np][i][5] = (float)(buffer_Acc_GYRO_send[np][i][5])/16/256*250;
-            //NSLog(@"before : %f %f %f %f %f %f",buffer_Acc_GYRO_write[np][i][0],buffer_Acc_GYRO_write[np][i][1],buffer_Acc_GYRO_write[np][i][2],buffer_Acc_GYRO_write[np][i][3],buffer_Acc_GYRO_write[np][i][4],buffer_Acc_GYRO_write[np][i][5]);
-            NSArray *pathsa = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-            NSString *documentsDirectory = [pathsa objectAtIndex:0];
-            //NSLog(@"save to %@\n", address);
-            file_address = [NSString stringWithFormat:@"%@.csv", address];
-            NSString *path = [documentsDirectory stringByAppendingPathComponent:file_address];
-            
-            // create if needed
-            if (![[NSFileManager defaultManager] fileExistsAtPath:path]){
-                [[NSData data] writeToFile:path atomically:YES];
+    for(int i=1;i<5;i++)
+    {NSLog(@"i: %d",i);
+        key = [self dic_key_decide:i];
+        tem = [dic valueForKey:key];
+        if(tem)
+        {NSLog(@"tem.count: %lu", (unsigned long)tem.count);
+            NSArray *data = [[NSArray alloc] init];
+            for(int j=0; j<tem.count;j++)
+            {NSLog(@"J: %d",j);
+                NSArray *pathsa = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+                NSString *documentsDirectory = [pathsa objectAtIndex:0];
+                
+                file_address = [NSString stringWithFormat:@"%@.csv", address];
+                NSString *path = [documentsDirectory stringByAppendingPathComponent:file_address];
+                
+                // create if needed
+                if (![[NSFileManager defaultManager] fileExistsAtPath:path]){
+                    [[NSData data] writeToFile:path atomically:YES];
+                }
+                
+                // append
+                NSFileHandle *handle = [NSFileHandle fileHandleForWritingAtPath:path];
+                [handle truncateFileAtOffset:[handle seekToEndOfFile]];
+                
+                data = [tem objectAtIndex:j];
+                
+                NSLog(@"data0: %@", data[0]);
+                NSString *outS = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@\r\n", data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]];
+                NSLog(@"out%@",outS);
+                [handle writeData:[outS dataUsingEncoding:NSUTF8StringEncoding]];
             }
-            
-            // append
-            NSFileHandle *handle = [NSFileHandle fileHandleForWritingAtPath:path];
-            [handle truncateFileAtOffset:[handle seekToEndOfFile]];
-            
-            
-            NSString *outS = [NSString stringWithFormat:@"%f,%f,%f,%f,%f,%f,%f,%hu\r\n", buffer_time[np][i], buffer_Acc_GYRO_write[np][i][0],buffer_Acc_GYRO_write[np][i][1], buffer_Acc_GYRO_write[np][i][2], buffer_Acc_GYRO_write[np][i][3], buffer_Acc_GYRO_write[np][i][4],buffer_Acc_GYRO_write[np][i][5], buffer_seqnum[np][i]];
-            //NSLog(@"out%@",outS);
-            [handle writeData:[outS dataUsingEncoding:NSUTF8StringEncoding]];
         }
-        last_index[np] = counter_n[np]-1;
-        after_write[np] = 1;
-        counter_n[np] = 0;
-    }
-    if (counter_r[np] >200) {
-        //寫入檔案
-        for (int i=0;i<counter_r[np];i++) {
-
-            NSArray *pathsa = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
-            NSString *documentsDirectory = [pathsa objectAtIndex:0];
-            //NSLog(@"save to %@\n", address);
-            file_address = [NSString stringWithFormat:@"%@_retx.csv", address];
-            NSString *path = [documentsDirectory stringByAppendingPathComponent:file_address];
-            
-            // create if needed
-            if (![[NSFileManager defaultManager] fileExistsAtPath:path]){
-                [[NSData data] writeToFile:path atomically:YES];
-            }
-            
-            // append
-            NSFileHandle *handle = [NSFileHandle fileHandleForWritingAtPath:path];
-            [handle truncateFileAtOffset:[handle seekToEndOfFile]];
-            
-            
-            NSString *outS = [NSString stringWithFormat:@"%f,%f,%f,%f,%f,%f,%f,%hu\r\n", buffer_time_retx[np][i], buffer_Acc_GYRO_retx[np][i][0],buffer_Acc_GYRO_retx[np][i][1], buffer_Acc_GYRO_retx[np][i][2], buffer_Acc_GYRO_retx[np][i][3], buffer_Acc_GYRO_retx[np][i][4],buffer_Acc_GYRO_retx[np][i][5], buffer_seqnum_retx[np][i]];
-            //NSLog(@"out%@",outS);
-            [handle writeData:[outS dataUsingEncoding:NSUTF8StringEncoding]];
-        }
-        //last_index_r[np] = counter_r[np]-1;
-        //after_write_r[np] = 1;
-        counter_r[np] = 0;
     }
 }
-
 
 @end
