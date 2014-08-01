@@ -223,6 +223,8 @@ int pcount;
         [arryConnect removeObjectAtIndex:indexPath.row];
         [self.tableView reloadData];
         
+        NSLog(@"array acount: %d", [arryConnect count]);
+        if([arryConnect count]==0)
         [self reorder_handler];
         //[self save];
         
@@ -333,14 +335,11 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
     
     if(first_data[np] == 0)
     {
-        NSLog(@"first");
         loss_num = seqnum - last_index[np] - 1;
         last_index[np] = seqnum;
     }
     else
     {
-        //loss_num = seqnum - last_index[np] - 1;
-        //NSLog(@"loss: %d", loss_num);
         NSMutableArray *tem_dic = [[NSMutableArray alloc] init];
         [tem_dic addObject:tem];
         [normal_data setValue:tem_dic forKey:dic_key];
@@ -348,7 +347,7 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
         first_data[np] = 0;
         return;
     }
-    
+        NSLog(@"loss: %d", loss_num);
     if(loss_num < 0)
     {
         [[retx_data valueForKey:dic_key] addObject:tem];
@@ -398,8 +397,7 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
     //NSArray *tem_sort = [[NSArray alloc] init];
     
     for(int i=1; i<5; i++)
-    {NSLog(@"for");
-        
+    {
         int re_key = 0, sort_key = 0;
         key = [self dic_key_decide:i];
         NSLog(@"after switch: %@", key);
@@ -410,7 +408,8 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
         {NSLog(@"nor");
             [tem_com addObject:tem_nor];
             NSString *add = [NSString stringWithFormat:@"normal_data_%@",key];
-            [self save:normal_data address:add];//NSLog(@"nor: %@",normal_data);
+            NSLog(@"Save normal");
+            [self save:normal_data address:add key:key];//NSLog(@"nor: %@",normal_data);
             add = nil;
         }
         else
@@ -422,7 +421,8 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
         {NSLog(@"re");
             [tem_com addObject:tem_re];
             NSString *add = [NSString stringWithFormat:@"retx_data_%@",key];
-            [self save:retx_data address:add];
+            NSLog(@"Save retx");
+            [self save:retx_data address:add key:key];
             add = nil;
             re_key = 1;
         }
@@ -439,7 +439,7 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
             [self recatch:[complete_data valueForKey:key] key:key];
             NSLog(@"com:%@",complete_data);
             NSString *add = [NSString stringWithFormat:@"combine_data_%@",key];
-            [self save:complete_data address:add];
+            [self save:complete_data address:add key:key];
             NSLog(@"redd");
             sort_key = 1;
         }
@@ -448,9 +448,9 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
         {
             [complete_data setObject:tem_nor forKey:key];
             [self recatch:[complete_data valueForKey:key] key:key];
-            NSLog(@"com:%@",complete_data);
+            //NSLog(@"com:%@",complete_data);
             NSString *add = [NSString stringWithFormat:@"combine_data_%@",key];
-            [self save:complete_data address:add];
+            [self save:complete_data address:add key:key];
         }
     }
 }
@@ -468,9 +468,9 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
         ahead_int = [ahead[7] intValue];
         tail_int = [tail[7] intValue];
         difference = tail_int - ahead_int;
-        NSLog(@"index: %d, difference: %d",i, difference);
         if ( difference > 1 )
         {
+            NSLog(@"index: %d, difference: %d",i, difference);
             NSRange range = NSMakeRange(i, difference-1);//NSLog(@"range:%@",range);
             NSMutableIndexSet *indexes = [NSMutableIndexSet indexSetWithIndexesInRange:range];
             [tem insertObjects:[self interpol:ahead tail_array:tail diff:difference index:i] atIndexes:indexes];
@@ -548,21 +548,17 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
     [complete_data setValue:tem_normal forKey:key];
 }
 
-- (void) save:(NSMutableDictionary*)dic address:(NSString*)address
-{NSLog(@"save");
-    NSString *key = [[NSString alloc] init];
+- (void) save:(NSMutableDictionary*)dic address:(NSString*)address key:(NSString*)key
+{//NSLog(@"save");
     NSArray *tem = [[NSArray alloc] init];
     NSString* file_address = nil;
 
-    for(int i=1;i<5;i++)
-    {NSLog(@"i: %d",i);
-        key = [self dic_key_decide:i];
         tem = [dic valueForKey:key];
         if(tem)
         {NSLog(@"tem.count: %lu", (unsigned long)tem.count);
             NSArray *data = [[NSArray alloc] init];
             for(int j=0; j<tem.count;j++)
-            {NSLog(@"J: %d",j);
+            {//NSLog(@"J: %d",j);
                 NSArray *pathsa = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
                 NSString *documentsDirectory = [pathsa objectAtIndex:0];
                 
@@ -580,13 +576,13 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
                 
                 data = [tem objectAtIndex:j];
                 
-                NSLog(@"data0: %@", data[0]);
                 NSString *outS = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@\r\n", data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]];
-                NSLog(@"out%@",outS);
+                //NSLog(@"out%@",outS);
                 [handle writeData:[outS dataUsingEncoding:NSUTF8StringEncoding]];
             }
+            NSLog(@"Save done address:%@, key: %@",address,key);
+
         }
-    }
 }
 
 @end
