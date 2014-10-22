@@ -270,6 +270,8 @@ int pcount;
 - (void) ValuesUpdated:(int16_t)accel_x accel_y:(int16_t)accel_y accel_z:(int16_t)accel_z gyro_x:(int16_t)gyro_x gyro_y:(int16_t)gyro_y gyro_z:(int16_t)gyro_z seqnum:(int16_t)seqnum address:(NSString*)address
 {
     
+    int16_t sensorNum;
+    
    /* if (counter_n[0]>2000) {
         [self tableViewUpdated];
         counter_n[0]=0;
@@ -293,26 +295,37 @@ int pcount;
     
     if([address isEqualToString:@"AccGyro92"]) {
         //position = 1;
+        sensorNum = 1;
         [self HandleOutput:1 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z seqnum:(uint16_t)seqnum address:(NSString*)address];
+        [socket writeToServer:sensorNum accel_x:accel_x accel_y:accel_y accel_z:accel_z gyro_x:gyro_x gyro_y:gyro_y gyro_z:gyro_z seqnum:seqnum];
     }
     
     else  if([address isEqualToString:@"AccGyro93"]) {
         //position = 2;
+        sensorNum = 2;
         [self HandleOutput:2 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z seqnum:(uint16_t)seqnum address:(NSString*)address];
+        [socket writeToServer:sensorNum accel_x:accel_x accel_y:accel_y accel_z:accel_z gyro_x:gyro_x gyro_y:gyro_y gyro_z:gyro_z seqnum:seqnum];
     }
     
     else if([address isEqualToString:@"AccGyro94"]) {
-        //position = 3;        
+        //position = 3;
+        sensorNum = 3;
         [self HandleOutput:3 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z seqnum:(uint16_t)seqnum address:(NSString*)address];
+        [socket writeToServer:sensorNum accel_x:accel_x accel_y:accel_y accel_z:accel_z gyro_x:gyro_x gyro_y:gyro_y gyro_z:gyro_z seqnum:seqnum];
     }
     
     else if([address isEqualToString:@"AccGyro95"]) {
         //position = 4;
+        sensorNum = 4;
         [self HandleOutput:4 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z seqnum:(uint16_t)seqnum address:(NSString*)address];
+        [socket writeToServer:sensorNum accel_x:accel_x accel_y:accel_y accel_z:accel_z gyro_x:gyro_x gyro_y:gyro_y gyro_z:gyro_z seqnum:seqnum];
         
     }
     else;
     //position = 0;
+    
+    
+    
 }
 
 int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};

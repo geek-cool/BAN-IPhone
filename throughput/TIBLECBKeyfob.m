@@ -947,9 +947,6 @@ if (!self.peripherals) self.peripherals = [[NSMutableArray alloc] initWithObject
                     
                     
                     [[self accdelegate] ValuesUpdated:accel_xval accel_y:accel_yval accel_z:accel_zval gyro_x:gyro_xval gyro_y:gyro_yval gyro_z:gyro_zval seqnum:seqnum address:self.address];
-                   /* [[self accdelegate] RawValuesUpdated:val[0] accel_x_low:val[1] accel_y_high:val[2] accel_y_low:val[3] accel_z_high:val[4] accel_z_low:val[5] gyro_x_high:val[6] gyro_x_low:val[7] gyro_y_high:val[8] gyro_y_low:val[9] gyro_z_high:val[10] gyro_z_low:val[11]];*/
-                    //[[socket sockDelegate] writeToServer:self.accel_x accel_y:self.accel_y accel_z:self.accel_z gyro_x:self.gyro_x gyro_y:self.gyro_y gyro_z:self.gyro_z];
-                        
 
                     break;
                     

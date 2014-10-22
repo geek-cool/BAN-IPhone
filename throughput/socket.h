@@ -33,6 +33,6 @@
 - (void)closeNetwork;
 - (void)stream:(NSStream *)writeStream handleEvent:(NSStreamEvent)eventCode;
 
-- (void)writeToServer:(float)accel_x accel_y:(float)accel_y accel_z:(float)accel_z gyro_x:(float)gyro_x gyro_y:(float)gyro_y gyro_z:(float)gyro_z;
+- (void)writeToServer:(uint16_t)sensor_num accel_x:(int16_t)accel_x accel_y:(int16_t)accel_y accel_z:(int16_t)accel_z gyro_x:(int16_t)gyro_x gyro_y:(int16_t)gyro_y gyro_z:(int16_t)gyro_z seqnum:(int16_t)seqnum;
 
 @end
