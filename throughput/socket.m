@@ -11,15 +11,21 @@
 @implementation socketDelegate
 @synthesize inputStream;
 @synthesize outputStream;
+@synthesize outputKey;
+@synthesize output;
 @synthesize sendkey;
+
 
 - (void)initNetworkCommunication
 {
-    uint portNo = 1234;
+    output = [[NSMutableString alloc] init];
+    outputKey = false;
+    
+    uint portNo = 7788;
     CFReadStreamRef readStream;
     CFWriteStreamRef writeStream;
     
-    CFStreamCreatePairWithSocketToHost(NULL, (CFStringRef)@"140.114.79.174", portNo, &readStream, &writeStream);
+    CFStreamCreatePairWithSocketToHost(NULL, (CFStringRef)@"140.114.79.55", portNo, &readStream, &writeStream);
     
     if(!CFWriteStreamOpen(writeStream)) {
 		NSLog(@"Error, writeStream not open");
@@ -28,15 +34,15 @@
 	}
     
     CFWriteStreamSetProperty(writeStream, kCFStreamPropertyShouldCloseNativeSocket, kCFBooleanTrue);
-    //inputStream = (__bridge NSInputStream *)readStream;
+    inputStream = (__bridge NSInputStream *)readStream;
     outputStream = (__bridge NSOutputStream *)writeStream;
     
-    //[inputStream setDelegate:self];
+    [inputStream setDelegate:self];
     [outputStream setDelegate:self];
     
-    //[inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
+    [inputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
     [outputStream scheduleInRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-    //[inputStream open];
+    [inputStream open];
     [outputStream open];
     NSLog(@"Status of outputStream: %i", [outputStream streamStatus]);
     
@@ -79,6 +85,13 @@
              
              }
              break;*/
+        case NSStreamEventHasBytesAvailable:
+            if (writeStream == inputStream) {
+                NSLog(@"ready2222222");
+                NSLog(@"Status of outputStream: %i", [outputStream streamStatus]);
+                [self readFromServer];
+            }
+            break;
         case NSStreamEventHasSpaceAvailable:
             if (writeStream == outputStream)
             {
@@ -137,5 +150,144 @@ int count_T = 0;
         count++;
     }
 }
+
+
+- (void)readFromServer
+{
+    int count_buffer = 0;
+    NSString *str;
+    short int buffer[100];
+    for (int i=0; i<100; i++) {
+        buffer[i] = 0;
+    }
+    //char sport[1024];
+    NSLog(@"in");
+    //int slen = strlen((char *)buf);
+    int len;
+    
+    while([inputStream hasBytesAvailable] && count_buffer<=90)
+    {
+        count_buffer++;
+        len = [inputStream read:buffer maxLength:10];
+        NSLog(@"Inputstream size: %d",len);
+        if (len == 10) {
+            printf("server said:");
+            for (int i=0; i<5; i++) {
+                printf("%hi ",buffer[i]);
+                //str = [NSString stringWithFormat:@"%hi", buffer[i]];
+                //output = [output stringByAppendingString:str];
+                //NSLog(@"%@",output);
+            }printf("\n");
+            //NSLog(@"server said: %s",buffer);
+            [self dealWithOutput:&buffer];
+            //len = [inputStream read:sport maxLength:2];
+        }
+    }
+    //[self dealWithOutput:&buffer];
+    
+}
+NSMutableString *tee;
+- (void)dealWithOutput:(uint16_t *)receive
+{
+    NSString *tem = [[NSMutableString alloc] init];
+    NSString *sensorName;
+    NSString *stepNum;
+    NSString *landingProblem;
+    NSString *land;
+    NSString *heightProblem;
+    NSString *height;
+    NSString *pronation;
+    NSString *pro;
+    int16_t temp[100];
+    for(int i=0; i<100; i++)
+    {
+        temp[i] = *(receive+i);
+    }printf("out\n");
+    for(int i=0;i<5;i++)
+    {
+        printf("%hi", temp[i]);
+    }printf("\n");
+    if(temp[0]==1)
+    {
+        sensorName = [NSString stringWithFormat:@"Accgyro92: "];
+    }
+    else if(temp[0]==2)
+    {
+        sensorName = [NSString stringWithFormat:@"Accgyro93: "];
+    }
+    else if(temp[0]==3)
+    {
+        sensorName = [NSString stringWithFormat:@"Accgyro94: "];
+    }
+    else if(temp[0]==4)
+    {
+        sensorName = [NSString stringWithFormat:@"Accgyro95: "];
+    }
+    else
+        return;
+    printf("temp0\n");
+    if (temp[1] == 0)
+    {
+        land = [NSString stringWithFormat:@"O "];
+    }
+    else if( temp[1] == -1)
+    {
+        land = [NSString stringWithFormat:@"? "];
+    }
+    else
+    {
+        land = [NSString stringWithFormat:@"X "];
+    }
+    printf("temp1\n");
+    if(temp[2] == 0)
+    {
+        height = [NSString stringWithFormat:@"O "];
+    }
+    else if(temp[2] == -1)
+    {
+        height = [NSString stringWithFormat:@"? "];
+    }
+    else
+    {
+        height = [NSString stringWithFormat:@"X "];
+    }
+    printf("temp2\n");
+    if(temp[3] == 0)
+    {
+        pro = [NSString stringWithFormat:@"O "];
+    }
+    else if(temp[3] == -1)
+    {
+        pro = [NSString stringWithFormat:@"? "];
+    }
+    else
+    {
+        pro = [NSString stringWithFormat:@"X "];
+    }
+    printf("temp3\n");
+    
+    stepNum = [NSString stringWithFormat:@"step: %d ", temp[1]];
+    landingProblem = [@"landingProblem:" stringByAppendingString:land];
+    heightProblem = [@"heightProblem:" stringByAppendingString:height];
+    pronation = [@"pronation:" stringByAppendingString:pro];
+    
+    //tem = [tem stringByAppendingString:sensorName];
+    tem = [tem stringByAppendingString:stepNum];
+    tem = [tem stringByAppendingString:landingProblem];
+    tem = [tem stringByAppendingString:heightProblem];
+    tem = [tem stringByAppendingString:pronation];
+    tem = [tem stringByAppendingString:@"\n"];
+    //NSLog(@"%@",tem);
+    if(tee)
+        output = [output stringByAppendingString:tee];
+    output = [output stringByAppendingString:tem];
+    [tee appendString:output];
+    NSLog(@"out put %@",output);
+    [[self delegate] updateOutput:output];
+    output = [[NSMutableString alloc] init];
+    //outputKey = true;
+    
+}
+
 
 @end

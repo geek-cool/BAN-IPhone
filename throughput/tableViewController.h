@@ -11,7 +11,7 @@
 #import "socket.h"
 //#import "ViewController.h"
 
-@interface tableViewController : UITableViewController<TIBLECBKeyfobDelegate, UITableViewDataSource>{
+@interface tableViewController : UITableViewController<TIBLECBKeyfobDelegate, UITableViewDataSource, outputDelegate>{
     TIBLECBKeyfob *t;
     socketDelegate *socket;
     NSArray *arryInstructions;
@@ -31,6 +31,7 @@
     IBOutlet UIProgressView *TIBLEUIAccelYBar;
     IBOutlet UIProgressView *TIBLEUIAccelZBar;
     IBOutlet UIButton *ConnectPeri;
+    IBOutlet UITextView *Output;
     IBOutlet UITextField *Act;
     
     float                       accX;
@@ -49,10 +50,12 @@
 @property (nonatomic, retain) IBOutlet UIProgressView *TIBLEUIAccelYBar;
 @property (nonatomic, retain) IBOutlet UIProgressView *TIBLEUIAccelZBar;
 @property (nonatomic, retain) IBOutlet UIButton *ConnectPeri;
+@property (nonatomic, retain) IBOutlet UITextView *Output;
 
 @property (retain, nonatomic) NSString *fileName;
 @property (retain, nonatomic) NSString *paths;
 @property (retain, nonatomic) NSString *infile;
 @property (retain, nonatomic) NSString *peripherals;
+-(void)updateOutput:(NSString*)output;
 
 @end

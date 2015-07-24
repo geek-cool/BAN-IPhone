@@ -34,7 +34,11 @@ int pcount;
     
     socket = [[socketDelegate alloc] init];
     [socket initNetworkCommunication];
+    socket.delegate = self;
     message = [[NSMutableArray alloc] init];
+    NSLog(@"ouput before: %@",Output);
+    [self.Output setText:@"No step "];
+    NSLog(@"output after: %@",self.Output);
     
     normal_data = [[NSMutableDictionary alloc] initWithObjectsAndKeys:@"1", [[NSMutableArray alloc]init], @"2", [[NSMutableArray alloc]init], @"3", [[NSMutableArray alloc]init], @"4", [[NSMutableArray alloc]init], nil];
     retx_data = [[NSMutableDictionary alloc] initWithObjectsAndKeys:@"1", [[NSMutableArray alloc]init], @"2", [[NSMutableArray alloc]init], @"3", [[NSMutableArray alloc]init], @"4", [[NSMutableArray alloc]init], nil];
@@ -267,7 +271,7 @@ int pcount;
 
 //int position = 0;
 
-- (void) ValuesUpdated:(int16_t)accel_x accel_y:(int16_t)accel_y accel_z:(int16_t)accel_z gyro_x:(int16_t)gyro_x gyro_y:(int16_t)gyro_y gyro_z:(int16_t)gyro_z seqnum:(int16_t)seqnum address:(NSString*)address
+- (void) ValuesUpdated:(int16_t)accel_x accel_y:(int16_t)accel_y accel_z:(int16_t)accel_z gyro_x:(int16_t)gyro_x gyro_y:(int16_t)gyro_y gyro_z:(int16_t)gyro_z press_1:(int16_t)press_1 press_2:(int16_t)press_2 seqnum:(int16_t)seqnum address:(NSString*)address
 {
     
     int16_t sensorNum;
@@ -296,28 +300,28 @@ int pcount;
     if([address isEqualToString:@"AccGyro92"]) {
         //position = 1;
         sensorNum = 1;
-        [self HandleOutput:1 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z seqnum:(uint16_t)seqnum address:(NSString*)address];
+        [self HandleOutput:1 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z Press_1:press_1 Press_2:press_2 seqnum:(uint16_t)seqnum address:(NSString*)address];
         [socket writeToServer:sensorNum accel_x:accel_x accel_y:accel_y accel_z:accel_z gyro_x:gyro_x gyro_y:gyro_y gyro_z:gyro_z seqnum:seqnum];
     }
     
     else  if([address isEqualToString:@"AccGyro93"]) {
         //position = 2;
         sensorNum = 2;
-        [self HandleOutput:2 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z seqnum:(uint16_t)seqnum address:(NSString*)address];
+        [self HandleOutput:2 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z Press_1:press_1 Press_2:press_2 seqnum:(uint16_t)seqnum address:(NSString*)address];
         [socket writeToServer:sensorNum accel_x:accel_x accel_y:accel_y accel_z:accel_z gyro_x:gyro_x gyro_y:gyro_y gyro_z:gyro_z seqnum:seqnum];
     }
     
     else if([address isEqualToString:@"AccGyro94"]) {
         //position = 3;
         sensorNum = 3;
-        [self HandleOutput:3 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z seqnum:(uint16_t)seqnum address:(NSString*)address];
+        [self HandleOutput:3 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z Press_1:press_1 Press_2:press_2 seqnum:(uint16_t)seqnum address:(NSString*)address];
         [socket writeToServer:sensorNum accel_x:accel_x accel_y:accel_y accel_z:accel_z gyro_x:gyro_x gyro_y:gyro_y gyro_z:gyro_z seqnum:seqnum];
     }
     
     else if([address isEqualToString:@"AccGyro95"]) {
         //position = 4;
         sensorNum = 4;
-        [self HandleOutput:4 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z seqnum:(uint16_t)seqnum address:(NSString*)address];
+        [self HandleOutput:4 ss:ss accx:accel_x accy:accel_y accz:accel_z GYROx:gyro_x GYROy:gyro_y GYROz:gyro_z Press_1:press_1 Press_2:press_2 seqnum:(uint16_t)seqnum address:(NSString*)address];
         [socket writeToServer:sensorNum accel_x:accel_x accel_y:accel_y accel_z:accel_z gyro_x:gyro_x gyro_y:gyro_y gyro_z:gyro_z seqnum:seqnum];
         
     }
@@ -329,7 +333,7 @@ int pcount;
 }
 
 int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
-- (void) HandleOutput: (int)np ss:(float)ss accx:(int16_t)accx accy:(int16_t)accy accz:(int16_t)accz GYROx:(int16_t)GYROx GYROy:(int16_t)GYROy GYROz:(int16_t)GYROz seqnum:(int16_t)seqnum address:(NSString*)address
+- (void) HandleOutput: (int)np ss:(float)ss accx:(int16_t)accx accy:(int16_t)accy accz:(int16_t)accz GYROx:(int16_t)GYROx GYROy:(int16_t)GYROy GYROz:(int16_t)GYROz Press_1:(int16_t)press_1 Press_2:(int16_t)press_2 seqnum:(int16_t)seqnum address:(NSString*)address
 {
     int loss_num;
     NSString *dic_key = [[NSString alloc] init];
@@ -340,9 +344,11 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
     NSNumber *gx = [NSNumber numberWithInt:GYROx];
     NSNumber *gy = [NSNumber numberWithInt:GYROy];
     NSNumber *gz = [NSNumber numberWithInt:GYROz];
+    NSNumber *p1 = [NSNumber numberWithInt:press_1];
+    NSNumber *p2 = [NSNumber numberWithInt:press_2];
     NSNumber *seq = [NSNumber numberWithInt: seqnum];
 
-    NSArray *tem = [[NSArray alloc]initWithObjects:time, ax, ay, az, gx, gy, gz, seq, nil];
+    NSArray *tem = [[NSArray alloc]initWithObjects:time, ax, ay, az, gx, gy, gz, p1, p2, seq, nil];
 
     dic_key = [self dic_key_decide: np];
     
@@ -475,8 +481,8 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
         int ahead_int, tail_int, difference;
         ahead = [tem objectAtIndex:i-1];
         tail = [tem objectAtIndex:i];
-        ahead_int = [ahead[7] intValue];
-        tail_int = [tail[7] intValue];
+        ahead_int = [ahead[9] intValue];
+        tail_int = [tail[9] intValue];
         difference = tail_int - ahead_int;
         if ( difference > 1 )
         {
@@ -502,7 +508,9 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
     int ahead_gx = [ahead_array[4] intValue];
     int ahead_gy = [ahead_array[5] intValue];
     int ahead_gz = [ahead_array[6] intValue];
-    int ahead_seq = [ahead_array[7] intValue];
+    int ahead_p1 = [ahead_array[7] intValue];
+    int ahead_p2 = [ahead_array[8] intValue];
+    int ahead_seq = [ahead_array[9] intValue];
     float tail_time = [tail_array[0] floatValue];
     int tail_ax = [tail_array[1] intValue];
     int tail_ay = [tail_array[2] intValue];
@@ -510,7 +518,9 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
     int tail_gx = [tail_array[4] intValue];
     int tail_gy = [tail_array[5] intValue];
     int tail_gz = [tail_array[6] intValue];
-    int tail_seq = [tail_array[7] intValue];
+    int tail_p1 = [tail_array[7] intValue];
+    int tail_p2 = [tail_array[8] intValue];
+    int tail_seq = [tail_array[9] intValue];
     float diff_time = (tail_time - ahead_time)/(difference-1);
     int diff_ax = (tail_ax - ahead_ax)/difference;
     int diff_ay = (tail_ay - ahead_ay)/difference;
@@ -518,6 +528,8 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
     int diff_gx = (tail_gx - ahead_gx)/difference;
     int diff_gy = (tail_gy - ahead_gy)/difference;
     int diff_gz = (tail_gz - ahead_gz)/difference;
+    int diff_p1 = (tail_p1 - ahead_p1)/difference;
+    int diff_p2 = (tail_p2 - ahead_p2)/difference;
     int diff_seq = (tail_seq - ahead_seq)/difference;
     
     for(int i=1; i<difference; i++)
@@ -529,8 +541,10 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
         NSNumber *gx = [NSNumber numberWithInt:ahead_gx+i*diff_gx];
         NSNumber *gy = [NSNumber numberWithInt:ahead_gy+i*diff_gy];
         NSNumber *gz = [NSNumber numberWithInt:ahead_gz+i*diff_gz];
+        NSNumber *p1 = [NSNumber numberWithInt:ahead_p1+i*diff_p1];
+        NSNumber *p2 = [NSNumber numberWithInt:ahead_p2+i*diff_p2];
         NSNumber *seq = [NSNumber numberWithInt:ahead_seq+i*diff_seq];
-        NSArray *tem_for_tem = [[NSArray alloc] initWithObjects:time,ax,ay,az,gx,gy,gz,seq, nil];
+        NSArray *tem_for_tem = [[NSArray alloc] initWithObjects:time,ax,ay,az,gx,gy,gz,p1,p2,seq, nil];
         [tem addObject:tem_for_tem];
     }
     
@@ -551,7 +565,7 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
         for(int j=0; j<index; j++)
         {//NSLog(@"j:%d",j);
             //tem_retx = [retx_array objectAtIndex:j];
-            if([retx_array objectAtIndex:i][7] < [normal_array objectAtIndex:j][7])
+            if([retx_array objectAtIndex:i][9] < [normal_array objectAtIndex:j][9])
             {//NSLog(@"insert");
                 [tem_normal insertObject:[retx_array objectAtIndex:i] atIndex:j];
                 break;
@@ -593,7 +607,7 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
                 
                 data = [tem objectAtIndex:j];
                 
-                NSString *outS = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@\r\n", data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7]];
+                NSString *outS = [NSString stringWithFormat:@"%@,%@,%@,%@,%@,%@,%@,%@\r\n", data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9]];
                 //NSLog(@"out%@",outS);
                 //NSLog(@"Save to path: %@", path);
                 [handle waitForDataInBackgroundAndNotify];
@@ -604,6 +618,11 @@ int first_data[5] = {1, 1, 1, 1, 1}, last_index[5] = {0, 0 , 0, 0, 0};
             //NSLog(@"Save done address:%@, key: %@",address,key);
 
         }
+}
+-(void)updateOutput:(NSString*)output
+{
+    NSLog(@"delegate%@",output);
+    [self.Output setText:output];
 }
 
 @end

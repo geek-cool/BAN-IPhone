@@ -28,7 +28,7 @@
 @protocol accDelegate <NSObject>
 @optional
 
-- (void) ValuesUpdated:(int16_t)accel_x accel_y:(int16_t)accel_y accel_z:(int16_t)accel_z gyro_x:(int16_t)gyro_x gyro_y:(int16_t)gyro_y gyro_z:(int16_t)gyro_z seqnum:(int16_t)seqnum address:(NSString*)address;
+- (void) ValuesUpdated:(int16_t)accel_x accel_y:(int16_t)accel_y accel_z:(int16_t)accel_z gyro_x:(int16_t)gyro_x gyro_y:(int16_t)gyro_y gyro_z:(int16_t)gyro_z press_1:(int16_t)press_1 press_2:(int16_t)press_2 seqnum:(int16_t)seqnum address:(NSString*)address;
 
 -(void) RawValuesUpdated:(char)accel_x_high accel_x_low:(char)accel_x_low accel_y_high:(char)accel_y_high accel_y_low:(char)accel_y_low accel_z_high:(char)accel_z_high accel_z_low:(char)accel_z_low gyro_x_high:(char)gyro_x_high gyro_x_low:(char)gyro_x_low gyro_y_high:(char)gyro_y_high gyro_y_low:(char)gyro_y_low gyro_z_high:(char)gyro_z_high gyro_z_low:(char)gyro_z_low;
 @end

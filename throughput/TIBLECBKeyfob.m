@@ -921,10 +921,10 @@ if (!self.peripherals) self.peripherals = [[NSMutableArray alloc] initWithObject
                     
                 case ACCEL_GYRU_XYZ_UUID:
                 {
-                    char val[14];
+                    char val[18];
                     //int position;
 
-                    int16_t accel_xval, accel_yval, accel_zval, gyro_xval, gyro_yval, gyro_zval;
+                    int16_t accel_xval, accel_yval, accel_zval, gyro_xval, gyro_yval, gyro_zval, press_1val, press_2val;
                     uint16_t seqnum;
                     [characteristic.value getBytes:&val length:14];
  
@@ -934,7 +934,9 @@ if (!self.peripherals) self.peripherals = [[NSMutableArray alloc] initWithObject
                         gyro_xval = (int16_t)val[6]*256 + (uint8_t)val[7];
                         gyro_yval = (int16_t)val[8]*256 + (uint8_t)val[9];
                         gyro_zval = (int16_t)val[10]*256 + (uint8_t)val[11];
-                        seqnum = (uint16_t)val[12]*256 + (uint8_t)val[13];
+                        press_1val = (int16_t)val[12]*256 + (uint8_t)val[13];
+                        press_2val = (int16_t)val[14]*256 + (uint8_t)val[15];
+                        seqnum = (uint16_t)val[16]*256 + (uint8_t)val[17];
 
 //                        self.accel_x = accel_xval;
 //                        self.accel_y = accel_yval;
@@ -946,7 +948,7 @@ if (!self.peripherals) self.peripherals = [[NSMutableArray alloc] initWithObject
                     //NSLog(@"GYRO:%hi  %hi  %hi  %hi %hi  %hi %d\r\n", accel_xval, accel_yval, accel_zval, gyro_xval, gyro_yval, gyro_zval, seqnum);
                     
                     
-                    [[self accdelegate] ValuesUpdated:accel_xval accel_y:accel_yval accel_z:accel_zval gyro_x:gyro_xval gyro_y:gyro_yval gyro_z:gyro_zval seqnum:seqnum address:self.address];
+                    [[self accdelegate] ValuesUpdated:accel_xval accel_y:accel_yval accel_z:accel_zval gyro_x:gyro_xval gyro_y:gyro_yval gyro_z:gyro_zval press_1:press_1val press_2:press_2val seqnum:seqnum address:self.address];
 
                     break;
                     
